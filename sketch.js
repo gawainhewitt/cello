@@ -3,7 +3,7 @@ var info = true;    // this tells us whether to display the info screen or not
 var notePlaying = [0,0,0,0,0,0,0,0,0]; // array to store if a note is playing - not using this at the moment, but might
 var ongoingTouches = []; // to store ongoing touches in for multitouch
 const now = Tone.now(); // time variable to tell the tone.js when to play - i.e play now! (when function called for example)
-var notes = ["C3", "D3", "E3", "G3", "A3", "C4", "D4", "E4", "G4"];    // array containing our musical notes that we are currently using (tone.js will respond to these as is)
+var notes = ["C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4", "D4"];    // array containing our musical notes that we are currently using (tone.js will respond to these as is)
 var allTheNotes =  ["C1", "C#1", "D1", "D#1", "E1", "F1", "F#1", "G1", "G#1", "A1", "A#1", "B1",
                     "C2", "C#2", "D2", "D#2", "E2", "F2", "F#2", "G2", "G#2", "A2", "A#2", "B2",
                     "C3", "C#3", "D3", "D#3", "E3", "F3", "F#3", "G3", "G#3", "A3", "A#3", "B3",
@@ -18,7 +18,7 @@ var minor = [0,2,3,5,7,8,10,12,14]; // intervals for a minor scale for 9 notes
 var majorBlues = [0,2,3,4,7,9,12,14,15]; // intervals for a major blues scale for 9 notes
 var minorBlues = [0,3,5,6,7,10,12,15,17]; // intervals for a minor scale for 9 notes
 var scales = ["default", pentatonic, major, minor, majorBlues, minorBlues];
-var scale = pentatonic; // this variable sets the default scale on load
+var scale = major; // this variable sets the default scale on load
 var theKey = 0; // this variable sets the default key on load
 var octave = 24; //set the default octave on load
 var whichClicked = [0,0,0,0,0,0,0,0,0];
@@ -321,8 +321,6 @@ function handleMouseUp() {
 
 
 selectBoxes("keymenu"); //make a pretty keymenu
-selectBoxes("scalemenu"); //make a pretty scalemenu
-selectBoxes("octavemenu"); //make a pretty octavemenu
 
 function selectBoxes(name) {
 
@@ -413,48 +411,68 @@ document.addEventListener("click", closeAllSelect);
 
 function handleMenu(menu, index) { // function to handle the menu selections and change scales and keys
   if(menu === "keymenu"){
-    theKey = index -1; // set the variable to the correct scale - the minus 1 is to offset it to allow for the default menu setting
-    console.log("the key is "+theKey); //debugging
-    for(var i = 0; i < 9; i++) {
-      var theNote = scale[i] + octave + theKey; // the note plus the octave plus the offset from the key menu
-      notes[i] = allTheNotes[theNote]; // pick the notes from the all the notes array
-    }
-  }else if(menu === "scalemenu"){
-    console.log("the scale is "+index);
-    scale = scales[index];
-    console.log(scale);
-    for(var i = 0; i < 9; i++) {
-      var theNote = scale[i] + octave + theKey; // the note plus the octave plus the offset from the key menu
-      notes[i] = allTheNotes[theNote]; // pick the notes from the all the notes array
-    }
-  } else {
-    console.log("the octave is "+index);
-    octave = index * 12;                      //octave switching here WORKING HERE
-    for(var i = 0; i < 9; i++) {
-      var theNote = scale[i] + octave + theKey; // the note plus the octave plus the offset from the key menu
-      notes[i] = allTheNotes[theNote]; // pick the notes from the all the notes array
-    }
+    var theType = index -1; // set the variable to the correct scale - the minus 1 is to offset it to allow for the default menu setting
+    var types = ["pizz", "lyric", "short"];
+    console.log("the type is "+types[theType]); //debugging
+    setSampler(types[theType]);
   }
 }
 
-
+const pizzSamples = new Tone.ToneAudioBuffers({
+  urls: {
+    pizz0: "cello_pizz_0.flac",
+    pizz1: "cello_pizz_1.flac",
+    pizz2: "cello_pizz_2.flac",
+    pizz3: "cello_pizz_3.flac",
+    pizz4: "cello_pizz_4.flac",
+    pizz5: "cello_pizz_5.flac",
+    pizz6: "cello_pizz_6.flac",
+    pizz7: "cello_pizz_7.flac",
+    pizz8: "cello_pizz_8.flac",
+    lyric0: "cello_lyrical_0.flac",
+    lyric1: "cello_lyrical_1.flac",
+    lyric2: "cello_lyrical_2.flac",
+    lyric3: "cello_lyrical_3.flac",
+    lyric4: "cello_lyrical_4.flac",
+    lyric5: "cello_lyrical_5.flac",
+    lyric6: "cello_lyrical_6.flac",
+    lyric7: "cello_lyrical_7.flac",
+    lyric8: "cello_lyrical_8.flac",
+    short0: "cello_short_0.flac",
+    short1: "cello_short_1.flac",
+    short2: "cello_short_2.flac",
+    short3: "cello_short_3.flac",
+    short4: "cello_short_4.flac",
+    short5: "cello_short_5.flac",
+    short6: "cello_short_6.flac",
+    short7: "cello_short_7.flac",
+    short8: "cello_short_8.flac",
+  },
+  onload: () => {
+    hideLoadScreen();
+    loadSampler();
+  },
+  baseUrl: "/sounds/"
+});
 
 //following is to do with sound and image management
 
-const sampler = new Tone.Sampler({
-	urls: {
-		B2: "horn-tone-b2.mp3",
-    C3: "horn-tone-c3.mp3",
-    E3: "horn-tone-e3.mp3",
-    G3: "horn-tone-g3.mp3",
-    A3: "horn-tone-a3.mp3",
-    C4: "horn-tone-c4.mp3"
-	},
-	baseUrl: "/sounds/",
-	onload: () => {
-    hideLoadScreen();
+var sampler;
+
+function setSampler(type) {
+  for(let i = 0; i < 9; i++) {
+    sampler.add(notes[i], pizzSamples.get(`${type}${i}`));
   }
-})
+}
+
+function loadSampler() {
+  sampler= new Tone.Sampler();
+  setSampler("pizz");
+  sampler.connect(reverb);
+  sampler.set({
+    release: 8
+  });
+}
 
 const reverb = new Tone.Reverb({
   decay: 3,
@@ -462,12 +480,12 @@ const reverb = new Tone.Reverb({
   wet: 0.5
 }).toDestination();
 
-sampler.connect(reverb);
+// sampler.connect(reverb);
 
 
-sampler.set({
-  release: 8
-});
+// sampler.set({
+//   release: 8
+// });
 
 synth.set(  // setup the synth - this is audio stuff really
   {
@@ -488,10 +506,11 @@ synth.set(  // setup the synth - this is audio stuff really
 
 function playSynth(i) {
   sampler.triggerAttack(notes[i], Tone.now());
+  console.log(notes[i]);
   document.getElementById(`i${i}`).style.backgroundColor="magenta";
 }
 
-var col = ["rgb(255, 255, 0)", "rgb(200, 200, 0)", "rgb(255, 255, 0)", "rgb(200, 200, 0)", "rgb(255, 255, 0)", "rgb(200, 200, 0)", "rgb(255, 255, 0)", "rgb(200, 200, 0)", "rgb(255, 255, 0)"]; //colour of button
+var col = ["rgb(0, 255, 255)", "rgb(0, 200, 200)", "rgb(0, 255, 255)", "rgb(0, 200, 200)", "rgb(0, 255, 255)", "rgb(0, 200, 200)", "rgb(0, 255, 255)", "rgb(0, 200, 200)", "rgb(0, 255, 255)"]; //colour of button
 
 function stopSynth(i) {
   sampler.triggerRelease(notes[i], Tone.now());
